@@ -268,8 +268,31 @@ export async function getUserState(userId) {
 export async function getUserFavorites(userId) {
   if (!userId) return {};
   const uid = userId.toLowerCase().trim();
+
+  // 1. Read from local table file if present
   const table = readTableFile(FAVORITES_FILE, {});
-  return table[uid] || {};
+  const localFavs = table[uid] || {};
+
+  // 2. Derive from active user state (seamless on both local files and Vercel serverless)
+  const userState = await getUserState(uid);
+  const derivedFavs = {};
+  for (const [k, v] of Object.entries(userState)) {
+    if (v && v.fav === true) {
+      const type = k.startsWith('g_') ? 'grammar' : k.startsWith('v_') ? 'vocab' : 'kanji';
+      const index = parseInt(k.split('_')[1], 10);
+      derivedFavs[k] = {
+        type,
+        index,
+        fav: true,
+        updatedAt: v.updatedAt || new Date().toISOString()
+      };
+    }
+  }
+
+  return {
+    ...localFavs,
+    ...derivedFavs
+  };
 }
 
 /**
@@ -360,7 +383,10 @@ export async function setUserState(userId, stateData, delta = null) {
   writeTableFile(FAVORITES_FILE, favTable);
 
   // 5. Mirror to Edge Config for serverless cross-device persistence
-  await mirrorToEdgeConfig([{ key: `data_${uid}`, value: userCards }]);
+  await mirrorToEdgeConfig([
+    { key: `data_${uid}`, value: userCards },
+    { key: `favs_${uid}`, value: userFavs }
+  ]);
 
   return userCards;
 }
