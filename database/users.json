@@ -1,0 +1,29 @@
+{
+  "toni": {
+    "id": "toni",
+    "username": "toni",
+    "displayName": "Toni",
+    "hash": "5a149f1a695412b0fda6ed3d2d767697be34b532793b59338faf4b17c292c512",
+    "role": "user",
+    "createdAt": "2026-09-19T10:00:00.000Z",
+    "updatedAt": "2026-09-19T14:55:06.935Z"
+  },
+  "tony": {
+    "id": "tony",
+    "username": "tony",
+    "displayName": "tony",
+    "hash": "90ebe450f3b6dd8dba8998a6609055a7c98b7f84514eeb33335d3bd645ecaf03",
+    "role": "user",
+    "createdAt": "2026-09-19T03:12:26.290Z",
+    "updatedAt": "2026-09-19T14:55:06.936Z"
+  },
+  "alan": {
+    "id": "alan",
+    "username": "alan",
+    "displayName": "alan",
+    "hash": "b1fc197ecada6e754c0edaa95126a7ad7658ac5e71b9e9bd751ec256d21c4281",
+    "role": "user",
+    "createdAt": "2026-09-19T03:16:51.837Z",
+    "updatedAt": "2026-09-19T14:55:06.936Z"
+  }
+}

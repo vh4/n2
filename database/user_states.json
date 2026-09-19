@@ -1,0 +1,28 @@
+{
+  "toni": {
+    "g_0": {
+      "status": "mastered",
+      "fav": true
+    },
+    "g_1": {
+      "status": "mastered",
+      "fav": false
+    },
+    "v_5": {
+      "status": "again",
+      "fav": true
+    },
+    "v_12": {
+      "status": "mastered",
+      "fav": true
+    },
+    "k_2": {
+      "status": "mastered",
+      "fav": false
+    },
+    "k_8": {
+      "status": "again",
+      "fav": true
+    }
+  }
+}

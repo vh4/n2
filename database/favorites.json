@@ -1,0 +1,24 @@
+{
+  "toni": {
+    "g_0": {
+      "type": "grammar",
+      "index": 0,
+      "fav": true
+    },
+    "v_5": {
+      "type": "vocab",
+      "index": 5,
+      "fav": true
+    },
+    "v_12": {
+      "type": "vocab",
+      "index": 12,
+      "fav": true
+    },
+    "k_8": {
+      "type": "kanji",
+      "index": 8,
+      "fav": true
+    }
+  }
+}
