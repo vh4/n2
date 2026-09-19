@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { cls } from '../../../lib/utils';
 import { loginUser, registerUser } from '../services/auth.service';
 
@@ -50,12 +51,14 @@ function InputField({ label, type, value, onChange, placeholder, error }) {
  *  - Bilingual labels in Indonesian (ID) and English (EN).
  *
  * @param {object} props
- * @param {(user: object) => void} props.onLogin - Callback invoked when login succeeds.
- * @param {'EN'|'ID'} props.lang - Active language code.
+ * @param {(user: object) => void} [props.onLogin] - Callback invoked when login succeeds.
+ * @param {'EN'|'ID'} [props.lang='ID'] - Active language code.
+ * @param {'login'|'register'} [props.initialMode='login'] - Initial card mode.
+ * @param {boolean} [props.useLinks=false] - Whether to render next/link routes or inline toggle.
  * @returns {JSX.Element} Authentication card screen.
  */
-export function AuthPage({ onLogin, lang }) {
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+export function AuthPage({ onLogin, lang = 'ID', initialMode = 'login', useLinks = false }) {
+  const [mode, setMode] = useState(initialMode); // 'login' | 'register'
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -87,10 +90,12 @@ export function AuthPage({ onLogin, lang }) {
       'Username cannot be empty.': 'Username tidak boleh kosong.',
       'Username must be at least 3 characters.': 'Username minimal 3 karakter.',
       'Username already taken.': 'Username sudah digunakan.',
+      'Username already taken on another device.': 'Username sudah digunakan di perangkat lain.',
       'Password must be at least 6 characters.': 'Password minimal 6 karakter.',
       'User not found. Check username or register on this device.': 'Pengguna tidak ditemukan. Periksa username atau daftar ulang.',
       'User not found.': 'Pengguna tidak ditemukan.',
       'Incorrect password.': 'Password salah.',
+      'Username and password cannot be empty.': 'Username dan password tidak boleh kosong.',
     };
     return map[en] || en;
   };
@@ -111,7 +116,9 @@ export function AuthPage({ onLogin, lang }) {
       setError(isEN ? result.error : mapError(result.error));
       return;
     }
-    onLogin(result.user);
+    if (typeof onLogin === 'function') {
+      onLogin(result.user);
+    }
   };
 
   const handleRegisterSubmit = async (e) => {
@@ -130,6 +137,12 @@ export function AuthPage({ onLogin, lang }) {
     setLoading(false);
     if (!result.ok) {
       setError(isEN ? result.error : mapError(result.error));
+      return;
+    }
+    // Auto login immediately after registration
+    const autoLog = await loginUser(username, password);
+    if (autoLog.ok && typeof onLogin === 'function') {
+      onLogin(autoLog.user);
       return;
     }
     setSuccess(labels.success_reg);
@@ -213,15 +226,28 @@ export function AuthPage({ onLogin, lang }) {
 
         {/* Mode Switcher Link */}
         <div className="mt-5 text-center">
-          <button
-            onClick={() => {
-              setMode(mode === 'login' ? 'register' : 'login');
-              reset();
-            }}
-            className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
-          >
-            {mode === 'login' ? labels.switch_to_reg : labels.switch_to_log}
-          </button>
+          {useLinks ? (
+            mode === 'login' ? (
+              <Link href="/register" className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400">
+                {labels.switch_to_reg}
+              </Link>
+            ) : (
+              <Link href="/login" className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400">
+                {labels.switch_to_log}
+              </Link>
+            )
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === 'login' ? 'register' : 'login');
+                reset();
+              }}
+              className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
+            >
+              {mode === 'login' ? labels.switch_to_reg : labels.switch_to_log}
+            </button>
+          )}
         </div>
       </div>
     </div>

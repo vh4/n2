@@ -25,7 +25,7 @@ const DEFAULT_USERS = {
     id: 'toni',
     username: 'toni',
     displayName: 'Toni',
-    hash: '5a149f1a695412b0fda6ed3d2d767697be34b532793b59338faf4b17c292c512',
+    hash: 'f1d360ed2e6c0ae9b2df90ecbcf18aa87e36162278aa327c6ff3042095f32f0b',
     role: 'user',
     createdAt: '2026-09-19T10:00:00.000Z'
   }
