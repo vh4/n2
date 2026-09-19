@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-    --font-jp: 'Noto Sans JP', sans-serif;
-  }
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-jp: 'Noto Sans JP', sans-serif;
 }
 
 /* 3D Perspective & Flashcard Flip Styles */
@@ -44,7 +44,20 @@
   -ms-overflow-style: none;
 }
 
-/* Drawer Animations */
+/* Active sidebar item */
+.sidebar-item.active {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  font-weight: 600;
+  border-right: 3px solid #2563eb;
+}
+.dark .sidebar-item.active {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border-right: 3px solid #3b82f6;
+}
+
+/* MUI-Style Bottom Sheet Drawer Animations */
 @keyframes drawerBackdropFade {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -55,6 +68,11 @@
   to { transform: translateY(0); }
 }
 
+@keyframes dialPopIn {
+  from { opacity: 0; transform: scale(0.9) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
 .animate-backdrop-fade {
   animation: drawerBackdropFade 0.25s cubic-bezier(0, 0, 0.2, 1) forwards;
 }
@@ -63,9 +81,21 @@
   animation: drawerSlideUp 0.35s cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 
+.animate-dial-pop {
+  animation: dialPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Smooth transition for active tab indicator */
+.nav-tab-indicator {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 /* Safe area support for iOS home indicator bar */
 @supports(padding-bottom: env(safe-area-inset-bottom)) {
   .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+  }
+  .mob-bottom-bar {
     padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
   }
 }
