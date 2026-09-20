@@ -38,7 +38,8 @@ export default function DashboardPage() {
   const [authTimedOut, setAuthTimedOut] = useState(false);
 
   // Multi-tenant isolated study state scoped to active session tenant
-  const { state, setItemState, cloudSync } = useStudyState(session);
+  // isLoaded: true once the authoritative cloud state has been fetched
+  const { state, setItemState, cloudSync, isLoaded } = useStudyState(session);
 
   // Language settings: 'ID' | 'EN' (stored in localStorage)
   const [lang, setLang] = useState(() => {
@@ -53,16 +54,57 @@ export default function DashboardPage() {
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
 
-  // Active workspace & filters
-  const [activeTab, setActiveTab] = useState('grammar'); // 'grammar' | 'vocab' | 'kanji' | 'favorite'
-  const [filter, setFilter] = useState('all');           // 'all' | 'again' | 'mastered' | 'favorite'
-  const [search, setSearch] = useState('');
+  // Active workspace tab: 'grammar' | 'vocab' | 'kanji' | 'favorite'
+  const [activeTab, setActiveTab] = useState('grammar');
+
+  /**
+   * Per-tab filter state — each module remembers its own active filter independently.
+   * This prevents the "filter reset" UX issue when switching between tabs.
+   * Values: 'all' | 'again' | 'mastered' | 'favorite'
+   */
+  const [tabFilters, setTabFilters] = useState({
+    grammar: 'all',
+    vocab: 'all',
+    kanji: 'all',
+    favorite: 'all'
+  });
+
+  /**
+   * Per-tab search state — each module remembers its own search query independently.
+   */
+  const [tabSearch, setTabSearch] = useState({
+    grammar: '',
+    vocab: '',
+    kanji: '',
+    favorite: ''
+  });
+
+  // Derived filter/search for the currently active tab
+  const filter = tabFilters[activeTab] || 'all';
+  const search = tabSearch[activeTab] || '';
+
+  /**
+   * Updates the filter for the currently active tab only.
+   * @param {string} newFilter - New filter value.
+   */
+  const setFilter = (newFilter) => {
+    setTabFilters((prev) => ({ ...prev, [activeTab]: newFilter }));
+  };
+
+  /**
+   * Updates the search query for the currently active tab only.
+   * @param {string} query - New search query.
+   */
+  const setSearch = (query) => {
+    setTabSearch((prev) => ({ ...prev, [activeTab]: query }));
+  };
+
   const [category, setCategory] = useState('ALL');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [autoPlay, setAutoPlay] = useState(false);
 
-  // Position indexes for each card deck
+  // Position indexes for each card deck (independent per module)
   const [gPos, setGPos] = useState(0);
   const [vPos, setVPos] = useState(0);
   const [kPos, setKPos] = useState(0);
@@ -152,6 +194,7 @@ export default function DashboardPage() {
   };
 
   const handleStart = () => {
+    // Reset only the active tab's filter and search; other tabs are unaffected
     setFilter('all');
     setSearch('');
     if (activeTab === 'grammar') setGPos(0);
@@ -284,9 +327,9 @@ export default function DashboardPage() {
         <Sidebar
           activeTab={activeTab}
           setActiveTab={(tab) => {
+            // Per-tab filter/search state is preserved on tab switch.
+            // Each module remembers its own filter context independently.
             setActiveTab(tab);
-            setFilter('all');
-            setSearch('');
           }}
           category={category}
           setCategory={setCategory}
@@ -362,6 +405,7 @@ export default function DashboardPage() {
               category={category}
               autoPlay={autoPlay}
               setAutoPlay={setAutoPlay}
+              isLoaded={isLoaded}
             />
           )}
 
@@ -380,6 +424,7 @@ export default function DashboardPage() {
               setPos={setVPos}
               autoPlay={autoPlay}
               setAutoPlay={setAutoPlay}
+              isLoaded={isLoaded}
             />
           )}
 
@@ -398,6 +443,7 @@ export default function DashboardPage() {
               setPos={setKPos}
               autoPlay={autoPlay}
               setAutoPlay={setAutoPlay}
+              isLoaded={isLoaded}
             />
           )}
 
@@ -418,9 +464,8 @@ export default function DashboardPage() {
       <MobileNav
         activeTab={activeTab}
         setActiveTab={(tab) => {
+          // Per-tab filter/search state is preserved on tab switch
           setActiveTab(tab);
-          setFilter('all');
-          setSearch('');
         }}
         onOpenDrawer={() => setDrawerOpen(true)}
         favCount={stats.fav}
@@ -434,9 +479,8 @@ export default function DashboardPage() {
         session={session}
         activeTab={activeTab}
         setActiveTab={(tab) => {
+          // Per-tab filter/search state is preserved on tab switch
           setActiveTab(tab);
-          setFilter('all');
-          setSearch('');
         }}
         lang={lang}
         handleLang={handleLang}

@@ -296,3 +296,140 @@ test('6. Favorites Table Synchronization — database/favorites.json mirrors all
     fs.writeFileSync(favsPath, JSON.stringify(favs, null, 2), 'utf8');
   }
 });
+
+test('7. Status Filter Combinations — Semua/Dikuasai/Belum Ingat/Favorite return correct item counts', async () => {
+  const user = 'test_filter_combos';
+
+  // Setup: 5 cards with different state combinations
+  await setUserState(user, {
+    'g_1': { status: 'mastered', fav: false }, // Dikuasai, not Fav
+    'g_2': { status: 'mastered', fav: true },  // Dikuasai + Fav
+    'g_3': { status: 'again', fav: true },     // Belum Ingat + Fav
+    'g_4': { status: 'again', fav: false },    // Belum Ingat, not Fav
+    'g_5': { status: 'mastered', fav: true }   // Dikuasai + Fav
+  });
+
+  const fullState = await getUserState(user);
+
+  // Count items per filter — mimics what the Workspace components compute
+  const allItems = Object.keys(fullState); // Semua yang ada di DB
+  const mastered = Object.entries(fullState).filter(([, v]) => v.status === 'mastered');
+  const again = Object.entries(fullState).filter(([, v]) => v.status === 'again');
+  const favorites = Object.entries(fullState).filter(([, v]) => v.fav === true);
+
+  assert.equal(allItems.length, 5, 'Semua: must have 5 rated items stored');
+  assert.equal(mastered.length, 3, 'Dikuasai: must have 3 mastered items (g_1, g_2, g_5)');
+  assert.equal(again.length, 2, 'Belum Ingat: must have 2 again items (g_3, g_4)');
+  assert.equal(favorites.length, 3, 'Favorite: must have 3 fav items (g_2, g_3, g_5)');
+
+  // Verify exact status logic
+  assert.equal(fullState['g_2']?.status, 'mastered', 'g_2 must be mastered');
+  assert.equal(fullState['g_2']?.fav, true, 'g_2 must be favorite (mastered + fav combo)');
+  assert.equal(fullState['g_3']?.status, 'again', 'g_3 must be again');
+  assert.equal(fullState['g_3']?.fav, true, 'g_3 must be favorite (again + fav combo)');
+
+  // Cleanup
+  const dbDir = getDatabaseDir();
+  const statesPath = path.join(dbDir, 'user_states.json');
+  const favsPath = path.join(dbDir, 'favorites.json');
+  if (fs.existsSync(statesPath)) {
+    const s = JSON.parse(fs.readFileSync(statesPath, 'utf8'));
+    delete s[user];
+    fs.writeFileSync(statesPath, JSON.stringify(s, null, 2), 'utf8');
+  }
+  if (fs.existsSync(favsPath)) {
+    const f = JSON.parse(fs.readFileSync(favsPath, 'utf8'));
+    delete f[user];
+    fs.writeFileSync(favsPath, JSON.stringify(f, null, 2), 'utf8');
+  }
+});
+
+test('8. Delta-Only Sync — Server preserves all cards when only delta is sent (no stateData)', async () => {
+  const user = 'test_delta_only';
+
+  // Setup: 4 existing cards across 3 modules
+  await setUserState(user, {
+    'g_10': { status: 'mastered', fav: false },
+    'v_20': { status: 'again', fav: true },
+    'k_30': { status: 'mastered', fav: true }
+  });
+
+  // Simulate client sending ONLY delta (no stateData, matching new study.service.js behavior)
+  const deltaRes = await callApi({
+    method: 'POST',
+    body: {
+      action: 'save_state',
+      username: user,
+      delta: { key: 'k_5', item: { status: 'mastered', fav: false } }
+      // Note: stateData is intentionally absent — this is the fixed behavior
+    }
+  });
+
+  assert.equal(deltaRes.data.ok, true);
+  assert.equal(deltaRes.data.count, 4, 'Server should have 4 cards: 3 existing + 1 new delta');
+
+  // All 3 original cards must still be present
+  const stateAfterDelta = await getUserState(user);
+  assert.equal(stateAfterDelta['g_10']?.status, 'mastered', 'g_10 must survive delta-only update');
+  assert.equal(stateAfterDelta['v_20']?.status, 'again', 'v_20 must survive delta-only update');
+  assert.equal(stateAfterDelta['k_30']?.fav, true, 'k_30 fav must survive delta-only update');
+  assert.equal(stateAfterDelta['k_5']?.status, 'mastered', 'k_5 delta update must be saved');
+
+  // Cleanup
+  const dbDir = getDatabaseDir();
+  const statesPath = path.join(dbDir, 'user_states.json');
+  const favsPath = path.join(dbDir, 'favorites.json');
+  if (fs.existsSync(statesPath)) {
+    const s = JSON.parse(fs.readFileSync(statesPath, 'utf8'));
+    delete s[user];
+    fs.writeFileSync(statesPath, JSON.stringify(s, null, 2), 'utf8');
+  }
+  if (fs.existsSync(favsPath)) {
+    const f = JSON.parse(fs.readFileSync(favsPath, 'utf8'));
+    delete f[user];
+    fs.writeFileSync(favsPath, JSON.stringify(f, null, 2), 'utf8');
+  }
+});
+
+test('9. Cross-Device Fresh Login — Cloud state is preserved when localStorage is empty', async () => {
+  const user = 'test_fresh_device';
+
+  // Device A saves state to server
+  await setUserState(user, {
+    'g_50': { status: 'mastered', fav: true },
+    'v_75': { status: 'again', fav: false },
+    'k_12': { status: 'mastered', fav: true }
+  });
+
+  // Device B simulates fresh load (localStorage = {}) — fetches from cloud
+  // This tests that getUserState returns the full server partition regardless of local cache
+  const freshState = await getUserState(user);
+
+  assert.equal(Object.keys(freshState).length, 3, 'Fresh device must fetch all 3 cards from server');
+  assert.equal(freshState['g_50']?.status, 'mastered', 'g_50 must be restored to fresh device');
+  assert.equal(freshState['g_50']?.fav, true, 'g_50 fav must be restored to fresh device');
+  assert.equal(freshState['v_75']?.status, 'again', 'v_75 must be restored to fresh device');
+  assert.equal(freshState['k_12']?.fav, true, 'k_12 fav must be restored to fresh device');
+
+  // Verify favorites table is also correct
+  const favs = await getUserFavorites(user);
+  assert.ok(favs['g_50'], 'g_50 must appear in favorites table on fresh device');
+  assert.ok(favs['k_12'], 'k_12 must appear in favorites table on fresh device');
+  assert.equal(favs['v_75'], undefined, 'v_75 (fav:false) must NOT be in favorites table');
+
+  // Cleanup
+  const dbDir = getDatabaseDir();
+  const statesPath = path.join(dbDir, 'user_states.json');
+  const favsPath = path.join(dbDir, 'favorites.json');
+  if (fs.existsSync(statesPath)) {
+    const s = JSON.parse(fs.readFileSync(statesPath, 'utf8'));
+    delete s[user];
+    fs.writeFileSync(statesPath, JSON.stringify(s, null, 2), 'utf8');
+  }
+  if (fs.existsSync(favsPath)) {
+    const f = JSON.parse(fs.readFileSync(favsPath, 'utf8'));
+    delete f[user];
+    fs.writeFileSync(favsPath, JSON.stringify(f, null, 2), 'utf8');
+  }
+});
+

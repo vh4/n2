@@ -32,6 +32,7 @@ import { MdVolumeUp, MdStar, MdStarBorder } from 'react-icons/md';
  * @param {React.Dispatch<React.SetStateAction<number>>} props.setPos - Position setter.
  * @param {boolean} props.autoPlay - Auto play active flag.
  * @param {(val: boolean) => void} props.setAutoPlay - Auto play toggle.
+ * @param {boolean} props.isLoaded - True when authoritative cloud state has been fetched.
  * @returns {JSX.Element} Kanji workspace screen.
  */
 export function KanjiWorkspace({
@@ -47,7 +48,8 @@ export function KanjiWorkspace({
   pos,
   setPos,
   autoPlay,
-  setAutoPlay
+  setAutoPlay,
+  isLoaded = true
 }) {
   const [flipped, setFlipped] = useState(false);
   const [page, setPage] = useState(1);
@@ -295,6 +297,22 @@ export function KanjiWorkspace({
       </div>
     </div>
   );
+
+  /**
+   * Skeleton loader shown while cloud state is being fetched.
+   * Prevents confusing "0 items" in Dikuasai / Belum Ingat / Favorit during initial load.
+   */
+  if (!isLoaded && filter !== 'all') {
+    return (
+      <div className="space-y-4">
+        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 pt-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-24 animate-pulse rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-800" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
