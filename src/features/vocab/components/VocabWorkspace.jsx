@@ -87,16 +87,32 @@ export function VocabWorkspace({
   const getMeaning = () => (lang === 'EN' ? getMeanEN() : getMeanID());
 
   const rate = (status) => {
+    const willLeave =
+      filter === 'unrated' ||
+      (filter === 'again' && status !== 'again') ||
+      (filter === 'mastered' && status !== 'mastered');
+
     setItemState('v', idx, { status });
     showToast(status === 'mastered' ? tr('toast_mastered') : tr('toast_again'));
     setFlipped(false);
-    setTimeout(() => setPos((p) => Math.min(filtered.length - 1, p + 1)), 180);
+
+    setTimeout(() => {
+      setPos((p) => {
+        if (willLeave) {
+          return Math.max(0, Math.min(filtered.length - 2, p));
+        }
+        return Math.min(filtered.length - 1, p + 1);
+      });
+    }, 180);
   };
 
   const toggleFav = () => {
     const nextFav = !st.fav;
     setItemState('v', idx, { fav: nextFav });
     showToast(nextFav ? tr('toast_fav_add') : tr('toast_fav_rem'));
+    if (filter === 'favorite' && !nextFav) {
+      setPos((p) => Math.max(0, Math.min(filtered.length - 2, p)));
+    }
   };
 
   const speakJP = (e) => {

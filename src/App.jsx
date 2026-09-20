@@ -741,8 +741,33 @@ function GrammarWorkspace({ lang, tr, filter, onFilter, search, onSearch, state,
   const note    = lang === 'EN' ? (card[9] || card[7]) : card[7];
 
   const speakJP = () => { if (!('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(card[0]); u.lang = 'ja-JP'; u.rate = 0.82; const v = getBestVoice('ja-JP'); if (v) u.voice = v; window.speechSynthesis.speak(u); };
-  const rate = (status) => { setItemState('g', idx, { status }); showToast(status === 'mastered' ? tr('toast_mastered') : tr('toast_again')); setFlipped(false); setTimeout(() => setPos(p => Math.min(filtered.length - 1, p + 1)), 180); };
-  const toggleFav = () => { const n = !st.fav; setItemState('g', idx, { fav: n }); showToast(n ? tr('toast_fav_add') : tr('toast_fav_rem')); };
+  const rate = (status) => {
+    const willLeave =
+      filter === 'unrated' ||
+      (filter === 'again' && status !== 'again') ||
+      (filter === 'mastered' && status !== 'mastered');
+
+    setItemState('g', idx, { status });
+    showToast(status === 'mastered' ? tr('toast_mastered') : tr('toast_again'));
+    setFlipped(false);
+
+    setTimeout(() => {
+      setPos((p) => {
+        if (willLeave) {
+          return Math.max(0, Math.min(filtered.length - 2, p));
+        }
+        return Math.min(filtered.length - 1, p + 1);
+      });
+    }, 180);
+  };
+  const toggleFav = () => {
+    const n = !st.fav;
+    setItemState('g', idx, { fav: n });
+    showToast(n ? tr('toast_fav_add') : tr('toast_fav_rem'));
+    if (filter === 'favorite' && !n) {
+      setPos((p) => Math.max(0, Math.min(filtered.length - 2, p)));
+    }
+  };
   useEffect(() => { setFlipped(false); }, [safePos]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -967,8 +992,33 @@ function CardWorkspace({ lang, tr, filter, onFilter, search, onSearch, state, se
   const getSearch = () => tr(`search_${type}`);
 
   const speakJP = () => { if (!('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(getWord()); u.lang = 'ja-JP'; u.rate = 0.82; const v = getBestVoice('ja-JP'); if (v) u.voice = v; window.speechSynthesis.speak(u); };
-  const rate = (status) => { setItemState(typeKey, idx, { status }); showToast(status === 'mastered' ? tr('toast_mastered') : tr('toast_again')); setFlipped(false); setTimeout(() => setPos(p => Math.min(filtered.length - 1, p + 1)), 180); };
-  const toggleFav = () => { const n = !st.fav; setItemState(typeKey, idx, { fav: n }); showToast(n ? tr('toast_fav_add') : tr('toast_fav_rem')); };
+  const rate = (status) => {
+    const willLeave =
+      filter === 'unrated' ||
+      (filter === 'again' && status !== 'again') ||
+      (filter === 'mastered' && status !== 'mastered');
+
+    setItemState(typeKey, idx, { status });
+    showToast(status === 'mastered' ? tr('toast_mastered') : tr('toast_again'));
+    setFlipped(false);
+
+    setTimeout(() => {
+      setPos((p) => {
+        if (willLeave) {
+          return Math.max(0, Math.min(filtered.length - 2, p));
+        }
+        return Math.min(filtered.length - 1, p + 1);
+      });
+    }, 180);
+  };
+  const toggleFav = () => {
+    const n = !st.fav;
+    setItemState(typeKey, idx, { fav: n });
+    showToast(n ? tr('toast_fav_add') : tr('toast_fav_rem'));
+    if (filter === 'favorite' && !n) {
+      setPos((p) => Math.max(0, Math.min(filtered.length - 2, p)));
+    }
+  };
   useEffect(() => { setFlipped(false); }, [safePos]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);

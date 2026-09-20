@@ -176,3 +176,105 @@ test('6. Five Filter State Contract — unrated, again, mastered, favorite, all 
   assert.equal(gUnrated.length + gAgain.length + gMastered.length, cards.length);
   assert.equal(vUnrated.length + vAgain.length + vMastered.length, vocab.length);
 });
+
+test('7. Sequential Advance Regression — Rating in unrated, again, and mastered smoothly advances to immediate next card without skipping', () => {
+  // Simulates the exact state machine of rating inside a workspace
+  class FlashcardDeckSimulator {
+    constructor(items, filter) {
+      this.items = [...items]; // array of string names
+      this.state = {};
+      this.filter = filter; // 'unrated' | 'again' | 'mastered' | 'all' | 'favorite'
+      this.pos = 0;
+    }
+
+    get filtered() {
+      return this.items.filter((item, i) => {
+        const s = this.state[item] || {};
+        if (this.filter === 'unrated' && (s.status === 'again' || s.status === 'mastered')) return false;
+        if (this.filter === 'again' && s.status !== 'again') return false;
+        if (this.filter === 'mastered' && s.status !== 'mastered') return false;
+        if (this.filter === 'favorite' && !s.fav) return false;
+        return true;
+      });
+    }
+
+    get currentCard() {
+      const list = this.filtered;
+      const safePos = Math.min(this.pos, Math.max(0, list.length - 1));
+      return list[safePos] || null;
+    }
+
+    rate(status) {
+      const listBefore = this.filtered;
+      const willLeave =
+        this.filter === 'unrated' ||
+        (this.filter === 'again' && status !== 'again') ||
+        (this.filter === 'mastered' && status !== 'mastered');
+
+      const activeCard = this.currentCard;
+      if (!activeCard) return;
+
+      // Update state
+      this.state[activeCard] = { ...(this.state[activeCard] || {}), status };
+
+      // Transition position
+      if (willLeave) {
+        this.pos = Math.max(0, Math.min(listBefore.length - 2, this.pos));
+      } else {
+        this.pos = Math.min(listBefore.length - 1, this.pos + 1);
+      }
+    }
+  }
+
+  // Scenario 1: User's reported bug in 'unrated' with 感激, 手入れ, 葬式
+  const unratedDeck = new FlashcardDeckSimulator(['感激', '手入れ', '葬式'], 'unrated');
+  assert.equal(unratedDeck.currentCard, '感激', 'First card must be 感激');
+
+  // Rate 感激 as 'again' (perlu ulang)
+  unratedDeck.rate('again');
+  assert.equal(unratedDeck.currentCard, '手入れ', 'After rating 感激, next card MUST BE 手入れ (NOT 葬式!)');
+
+  // Rate 手入れ as 'mastered' (sudah ingat)
+  unratedDeck.rate('mastered');
+  assert.equal(unratedDeck.currentCard, '葬式', 'After rating 手入れ, next card MUST BE 葬式');
+
+  // Rate 葬式 as 'mastered'
+  unratedDeck.rate('mastered');
+  assert.equal(unratedDeck.currentCard, null, 'After rating all cards, deck is finished');
+
+  // Scenario 2: In 'again' (belum diingat)
+  const againDeck = new FlashcardDeckSimulator(['CardA', 'CardB', 'CardC'], 'again');
+  // Initially mark all 3 as 'again'
+  againDeck.state = {
+    CardA: { status: 'again' },
+    CardB: { status: 'again' },
+    CardC: { status: 'again' }
+  };
+  assert.equal(againDeck.currentCard, 'CardA', 'Initial again card is CardA');
+
+  // Rate CardA as 'mastered' (leaves 'again')
+  againDeck.rate('mastered');
+  assert.equal(againDeck.currentCard, 'CardB', 'After mastering CardA, next card MUST BE CardB (NOT CardC!)');
+
+  // Rate CardB as 'again' (stays in 'again') -> should advance to next card CardC
+  againDeck.rate('again');
+  assert.equal(againDeck.currentCard, 'CardC', 'Rating again on CardB advances to CardC');
+
+  // Scenario 3: In 'mastered' (dikuasai)
+  const masteredDeck = new FlashcardDeckSimulator(['CardX', 'CardY', 'CardZ'], 'mastered');
+  masteredDeck.state = {
+    CardX: { status: 'mastered' },
+    CardY: { status: 'mastered' },
+    CardZ: { status: 'mastered' }
+  };
+  assert.equal(masteredDeck.currentCard, 'CardX', 'Initial mastered card is CardX');
+
+  // Rate CardX as 'again' (leaves 'mastered')
+  masteredDeck.rate('again');
+  assert.equal(masteredDeck.currentCard, 'CardY', 'After changing CardX to again, next card MUST BE CardY (NOT CardZ!)');
+
+  // Rate CardY as 'mastered' (stays in 'mastered') -> advances to CardZ
+  masteredDeck.rate('mastered');
+  assert.equal(masteredDeck.currentCard, 'CardZ', 'Rating mastered on CardY advances to CardZ');
+});
+
