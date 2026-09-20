@@ -251,23 +251,56 @@ export function VocabWorkspace({
           {lang === 'EN' ? `🇮🇩 ${getMeanID()}` : `🇬🇧 ${getMeanEN()}`}
         </div>
 
-        {item[4] && (
-          <div className="rounded-lg bg-slate-50 p-2.5 dark:bg-slate-850">
-            <div className="text-sm font-semibold text-slate-900 dark:text-white">
-              {item[4]}
+        {/* Render all example sentences dynamically (minimal 2 contoh) */}
+        {(() => {
+          const examples = [];
+          for (let k = 4; k < item.length; k += 3) {
+            if (item[k]) {
+              examples.push({
+                jp: item[k],
+                ro: item[k + 1],
+                id: item[k + 2]
+              });
+            }
+          }
+          return examples.map((ex, idx) => (
+            <div key={idx} className="rounded-lg bg-slate-50 p-2.5 dark:bg-slate-850">
+              <div className="mb-1 flex items-center justify-between">
+                <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold border ${
+                  idx === 0
+                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200/70 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800/50'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/50'
+                }`}>
+                  {tr('back_example')} {idx + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    speakJapanese(ex.jp);
+                  }}
+                  className="rounded p-1 text-xs text-slate-400 hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                  title="Dengarkan pengucapan kalimat"
+                >
+                  🔊
+                </button>
+              </div>
+              <div className="font-jp text-sm font-semibold text-slate-900 dark:text-white">
+                {ex.jp}
+              </div>
+              {ex.ro && (
+                <div className="mt-0.5 text-[11px] italic text-slate-500 dark:text-slate-400">
+                  {ex.ro}
+                </div>
+              )}
+              {ex.id && (
+                <div className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
+                  {ex.id}
+                </div>
+              )}
             </div>
-            {item[5] && (
-              <div className="mt-0.5 text-[11px] italic text-slate-500 dark:text-slate-400">
-                {item[5]}
-              </div>
-            )}
-            {item[6] && (
-              <div className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
-                {item[6]}
-              </div>
-            )}
-          </div>
-        )}
+          ));
+        })()}
       </div>
 
       <div className="flex items-center justify-between border-t border-slate-100 pt-2 dark:border-slate-800">
