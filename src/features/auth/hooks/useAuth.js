@@ -19,12 +19,17 @@ export function useAuth() {
 
   // Initialize session on client mount
   useEffect(() => {
-    const current = getSession();
-    if (current && current.uid) {
-      setSession(current);
-      setSessionCookie(current.uid);
+    try {
+      const current = getSession();
+      if (current && current.uid) {
+        setSession(current);
+        setSessionCookie(current.uid);
+      }
+    } catch (err) {
+      console.warn('Session initialization error:', err);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   /**

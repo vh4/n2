@@ -5,6 +5,8 @@ import {
   registerUser,
   loginUser,
   logoutUser,
+  getSession,
+  setSessionCookie,
   userKey,
   sha256,
   COOKIE_SESSION_KEY
@@ -206,3 +208,48 @@ test('7. Next.js Route Middleware — Guards /dashboard and routes public /login
   assert.equal(resF.status, 307);
   assert.ok(resF.headers.get('location').endsWith('/dashboard'));
 });
+
+test('8. Multi-Tier Session Restoration — checks sessionStorage, localStorage, and cookie', () => {
+  const mockStorage = (store = {}) => ({
+    getItem: (k) => store[k] || null,
+    setItem: (k, v) => { store[k] = String(v); },
+    removeItem: (k) => { delete store[k]; }
+  });
+
+  const sessionStore = {};
+  const localStore = {};
+  global.window = {};
+  global.sessionStorage = mockStorage(sessionStore);
+  global.localStorage = mockStorage(localStore);
+  global.document = { cookie: '' };
+
+  // 1. When empty, getSession() returns null
+  assert.equal(getSession(), null);
+
+  // 2. When cookie is set (e.g. Incognito / new tab), getSession restores session from cookie
+  global.document.cookie = `${COOKIE_SESSION_KEY}=toni`;
+  const restoredFromCookie = getSession();
+  assert.ok(restoredFromCookie, 'Session must be restored from cookie');
+  assert.equal(restoredFromCookie.uid, 'toni');
+
+  // 3. When sessionStorage is empty and localStorage has session, restores from localStorage
+  delete sessionStore['n2_session'];
+  global.document.cookie = '';
+  localStore['n2_session'] = JSON.stringify({ uid: 'budi', displayName: 'Budi' });
+  const restoredFromLocal = getSession();
+  assert.ok(restoredFromLocal, 'Session must be restored from localStorage');
+  assert.equal(restoredFromLocal.uid, 'budi');
+
+  // 4. Primary: when sessionStorage has session, restores from sessionStorage
+  sessionStore['n2_session'] = JSON.stringify({ uid: 'cici', displayName: 'Cici' });
+  const restoredFromSession = getSession();
+  assert.ok(restoredFromSession, 'Session must be restored from sessionStorage');
+  assert.equal(restoredFromSession.uid, 'cici');
+
+  // Cleanup
+  delete global.window;
+  delete global.sessionStorage;
+  delete global.localStorage;
+  delete global.document;
+});
+

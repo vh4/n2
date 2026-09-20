@@ -25,9 +25,9 @@ export function middleware(request) {
     }
   }
 
-  // 2. Redirect authenticated users away from public auth pages
+  // 2. Redirect authenticated users away from public auth pages (unless explicitly redirected)
   if (pathname === '/login' || pathname === '/register') {
-    if (sessionCookie) {
+    if (sessionCookie && !request.nextUrl?.searchParams?.has?.('redirect')) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }

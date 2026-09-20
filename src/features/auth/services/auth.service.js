@@ -57,6 +57,17 @@ export function setSessionCookie(uid) {
 }
 
 /**
+ * Extracts the session user ID from document cookies if present.
+ *
+ * @returns {string} Username or empty string if not found.
+ */
+export function getSessionCookie() {
+  if (typeof document === 'undefined') return '';
+  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_SESSION_KEY}=([^;]+)`));
+  return match ? decodeURIComponent(match[1]) : '';
+}
+
+/**
  * Clears the session cookie on logout.
  */
 export function clearSessionCookie() {
@@ -292,7 +303,8 @@ export async function loginUser(username, password) {
   };
 
   if (typeof window !== 'undefined') {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch {}
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch {}
   }
   setSessionCookie(uid);
 
@@ -300,29 +312,61 @@ export async function loginUser(username, password) {
 }
 
 /**
- * Logs out the active user by clearing the session token from sessionStorage and cookie.
+ * Logs out the active user by clearing the session token from sessionStorage, localStorage, and cookie.
  *
  * @returns {void}
  */
 export function logoutUser() {
   if (typeof window !== 'undefined') {
-    sessionStorage.removeItem(SESSION_KEY);
+    try { sessionStorage.removeItem(SESSION_KEY); } catch {}
+    try { localStorage.removeItem(SESSION_KEY); } catch {}
   }
   clearSessionCookie();
 }
 
 /**
- * Retrieves the currently active user session from browser sessionStorage.
+ * Retrieves the currently active user session from browser storage or active session cookie.
+ * Robust fallback checks sessionStorage -> localStorage -> cookie session identifier.
  *
  * @returns {object|null} Active session object or null if not logged in.
  */
 export function getSession() {
   if (typeof window === 'undefined') return null;
+
   try {
-    return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+    // 1. Check primary sessionStorage (active tab session)
+    const fromSession = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+    if (fromSession && fromSession.uid) {
+      setSessionCookie(fromSession.uid);
+      return fromSession;
+    }
+
+    // 2. Fallback to localStorage (survives tab close, window navigation, and refresh)
+    const fromLocal = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+    if (fromLocal && fromLocal.uid) {
+      try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(fromLocal)); } catch {}
+      setSessionCookie(fromLocal.uid);
+      return fromLocal;
+    }
+
+    // 3. Fallback to cookie session (matches server-side route middleware)
+    const cookieUid = getSessionCookie();
+    if (cookieUid) {
+      const users = getLocalUsers();
+      const user = users[cookieUid] || { username: cookieUid, displayName: cookieUid };
+      const restored = {
+        uid: cookieUid,
+        displayName: user.displayName || cookieUid,
+        loginAt: new Date().toISOString()
+      };
+      try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(restored)); } catch {}
+      try { localStorage.setItem(SESSION_KEY, JSON.stringify(restored)); } catch {}
+      return restored;
+    }
   } catch {
     return null;
   }
+  return null;
 }
 
 /**

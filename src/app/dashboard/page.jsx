@@ -17,8 +17,9 @@ import { FavoritesWorkspace } from '../../features/favorites/components/Favorite
 import { cards } from '../../data/cards';
 import { vocab } from '../../data/vocab';
 import { kanji } from '../../data/kanji';
+import { AuthPage } from '../../features/auth/components/AuthPage';
 import { cls } from '../../lib/utils';
-import { MdPlayArrow, MdStop, MdRestartAlt, MdShuffle } from 'react-icons/md';
+import { MdPlayArrow, MdStop, MdRestartAlt, MdShuffle, MdLightMode, MdDarkMode } from 'react-icons/md';
 
 /**
  * DashboardPage — Main Japanese Mastery Studio Viewport.
@@ -33,7 +34,8 @@ import { MdPlayArrow, MdStop, MdRestartAlt, MdShuffle } from 'react-icons/md';
  */
 export default function DashboardPage() {
   const router = useRouter();
-  const { session, isLoading, logout } = useAuth();
+  const { session, isLoading, login, logout } = useAuth();
+  const [authTimedOut, setAuthTimedOut] = useState(false);
 
   // Multi-tenant isolated study state scoped to active session tenant
   const { state, setItemState, cloudSync } = useStudyState(session);
@@ -67,6 +69,14 @@ export default function DashboardPage() {
 
   const tr = useTranslation(lang);
 
+  // Safety timeout: prevent hanging in infinite loading state if session check is delayed
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAuthTimedOut(true);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Persist language and theme preferences
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -79,12 +89,14 @@ export default function DashboardPage() {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
-  // Route guard: if auth check finishes and no session exists, forward to /login
+  // Route guard: if auth check finishes and no session exists, redirect to /login immediately
   useEffect(() => {
     if (!isLoading && !session) {
-      router.replace('/login');
+      if (typeof window !== 'undefined') {
+        window.location.replace('/login');
+      }
     }
-  }, [isLoading, session, router]);
+  }, [isLoading, session]);
 
   // Extract unique Grammar Bunpou categories
   const categories = useMemo(() => {
@@ -188,8 +200,8 @@ export default function DashboardPage() {
       : 'Semua item Favorit yang Anda simpan dari Grammar, Kosakata, dan Kanji.'
   }[activeTab] || '';
 
-  // While restoring session state or redirecting, show a smooth branded loading skeleton
-  if (isLoading || !session) {
+  // 1. While actively restoring session state on mount (capped by timeout)
+  if (isLoading && !authTimedOut) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex h-14 w-14 animate-pulse items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 shadow-xl shadow-blue-500/20">
@@ -198,6 +210,54 @@ export default function DashboardPage() {
         <p className="mt-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
           Memuat sesi belajar...
         </p>
+      </div>
+    );
+  }
+
+  // 2. If unauthenticated, render AuthPage directly with quick controls so user is NEVER stuck loading
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-slate-50 font-sans text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100">
+        <div className="fixed right-4 top-4 z-50 flex items-center gap-2">
+          <div className="flex items-center rounded-xl border border-slate-200 bg-white/95 p-1 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+            <button
+              onClick={() => handleLang('ID')}
+              className={cls(
+                'rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer',
+                lang === 'ID' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-sm' : 'text-slate-500 dark:text-slate-400'
+              )}
+            >
+              🇮🇩 ID
+            </button>
+            <button
+              onClick={() => handleLang('EN')}
+              className={cls(
+                'rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer',
+                lang === 'EN' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-sm' : 'text-slate-500 dark:text-slate-400'
+              )}
+            >
+              🇬🇧 EN
+            </button>
+          </div>
+          <button
+            onClick={handleDark}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white/95 text-slate-600 backdrop-blur transition hover:bg-slate-50 active:scale-95 dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-300 cursor-pointer"
+          >
+            {darkMode ? <MdLightMode className="h-4 w-4 text-amber-500" /> : <MdDarkMode className="h-4 w-4 text-slate-400" />}
+          </button>
+        </div>
+
+        <AuthPage
+          initialMode="login"
+          useLinks={true}
+          onLogin={async (user) => {
+            const res = await login(user);
+            if (res?.ok || user) {
+              window.location.href = '/dashboard';
+            }
+          }}
+          lang={lang}
+        />
       </div>
     );
   }
