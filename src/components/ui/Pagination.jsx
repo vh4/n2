@@ -1,10 +1,12 @@
+import React from 'react';
 import { cls } from '../../lib/utils';
+import { MdChevronLeft, MdChevronRight } from 'react-icons/md';
 
 /**
  * Pagination Component.
  * Accessible page navigation bar:
  *  - Calculates visible window around active page with ellipsis (`...`).
- *  - Disables previous/next buttons at boundaries.
+ *  - Disables previous/next buttons at boundaries with smooth Material styling.
  *
  * @param {object} props
  * @param {number} props.page - Current active page number (1-indexed).
@@ -32,10 +34,10 @@ export function Pagination({ page, totalPages, onPage }) {
       <button
         onClick={() => onPage(Math.max(1, page - 1))}
         disabled={page === 1}
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 disabled:opacity-30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+        className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 disabled:opacity-30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 cursor-pointer disabled:cursor-not-allowed shadow-sm"
         aria-label="Previous Page"
       >
-        ‹
+        <MdChevronLeft className="h-4 w-4" />
       </button>
 
       {deduped.map((p, idx) => {
@@ -53,9 +55,9 @@ export function Pagination({ page, totalPages, onPage }) {
             key={p}
             onClick={() => onPage(p)}
             className={cls(
-              'h-8 min-w-[32px] rounded-lg px-2 text-xs font-semibold transition',
+              'h-8 min-w-[32px] rounded-xl px-2 text-xs font-semibold transition cursor-pointer shadow-sm',
               isCurrent
-                ? 'bg-blue-600 text-white shadow-sm dark:bg-blue-500'
+                ? 'bg-blue-600 text-white shadow-blue-500/25 dark:bg-blue-500'
                 : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
             )}
             aria-current={isCurrent ? 'page' : undefined}
@@ -68,10 +70,10 @@ export function Pagination({ page, totalPages, onPage }) {
       <button
         onClick={() => onPage(Math.min(totalPages, page + 1))}
         disabled={page === totalPages}
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 disabled:opacity-30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+        className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 disabled:opacity-30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 cursor-pointer disabled:cursor-not-allowed shadow-sm"
         aria-label="Next Page"
       >
-        ›
+        <MdChevronRight className="h-4 w-4" />
       </button>
     </div>
   );

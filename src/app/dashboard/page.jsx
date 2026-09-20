@@ -17,6 +17,8 @@ import { FavoritesWorkspace } from '../../features/favorites/components/Favorite
 import { cards } from '../../data/cards';
 import { vocab } from '../../data/vocab';
 import { kanji } from '../../data/kanji';
+import { cls } from '../../lib/utils';
+import { MdPlayArrow, MdStop, MdRestartAlt, MdShuffle } from 'react-icons/md';
 
 /**
  * DashboardPage — Main Japanese Mastery Studio Viewport.
@@ -137,6 +139,55 @@ export default function DashboardPage() {
     window.location.href = '/login';
   };
 
+  const handleStart = () => {
+    setFilter('all');
+    setSearch('');
+    if (activeTab === 'grammar') setGPos(0);
+    else if (activeTab === 'vocab') setVPos(0);
+    else if (activeTab === 'kanji') setKPos(0);
+    showToast(tr('toast_start'));
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleShuffle = () => {
+    const lens = { grammar: cards.length, vocab: vocab.length, kanji: kanji.length };
+    const setters = { grammar: setGPos, vocab: setVPos, kanji: setKPos };
+    if (setters[activeTab]) {
+      setters[activeTab](Math.floor(Math.random() * (lens[activeTab] || 1)));
+    }
+    showToast(tr('toast_shuffle'));
+  };
+
+  const handleToggleAutoPlay = () => {
+    setAutoPlay((prev) => {
+      const next = !prev;
+      if (next) {
+        showToast(tr('toast_autoplay_start'));
+      } else if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      return next;
+    });
+  };
+
+  const tabTitle = {
+    grammar: tr('title_grammar'),
+    vocab: tr('title_vocab'),
+    kanji: tr('title_kanji'),
+    favorite: tr('nav_favorites')
+  }[activeTab] || tr('title_grammar');
+
+  const tabDesc = {
+    grammar: tr('desc_grammar'),
+    vocab: tr('desc_vocab'),
+    kanji: tr('desc_kanji'),
+    favorite: lang === 'EN'
+      ? 'All your saved & starred items across Grammar, Vocab, and Kanji.'
+      : 'Semua item Favorit yang Anda simpan dari Grammar, Kosakata, dan Kanji.'
+  }[activeTab] || '';
+
   // While restoring session state or redirecting, show a smooth branded loading skeleton
   if (isLoading || !session) {
     return (
@@ -186,6 +237,55 @@ export default function DashboardPage() {
 
         {/* Dynamic Feature Workspace Viewport */}
         <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
+          {/* Workspace Banner with Material Header Actions & AutoPlay */}
+          <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/90 sm:p-5 mb-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h1 className="text-base font-black text-slate-900 dark:text-white sm:text-lg">
+                  {tabTitle}
+                </h1>
+                <p className="mt-0.5 max-w-xl text-xs text-slate-500 dark:text-slate-400">
+                  {tabDesc}
+                </p>
+              </div>
+              {activeTab !== 'favorite' && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Auto Play Audio Button */}
+                  <button
+                    onClick={handleToggleAutoPlay}
+                    className={cls(
+                      'flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold shadow-sm transition active:scale-95 cursor-pointer',
+                      autoPlay
+                        ? 'bg-rose-600 text-white hover:bg-rose-700 animate-pulse shadow-rose-500/20'
+                        : 'bg-amber-500 text-white hover:bg-amber-600 shadow-amber-500/20'
+                    )}
+                  >
+                    {autoPlay ? <MdStop className="h-4 w-4" /> : <MdPlayArrow className="h-4 w-4" />}
+                    <span>{autoPlay ? tr('btn_stop_autoplay') : tr('btn_autoplay')}</span>
+                  </button>
+
+                  {/* Start / Reset Button */}
+                  <button
+                    onClick={handleStart}
+                    className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 active:scale-95 cursor-pointer"
+                  >
+                    <MdRestartAlt className="h-4 w-4" />
+                    <span>{tr('btn_start')}</span>
+                  </button>
+
+                  {/* Shuffle Button */}
+                  <button
+                    onClick={handleShuffle}
+                    className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer"
+                  >
+                    <MdShuffle className="h-4 w-4" />
+                    <span>{tr('btn_shuffle')}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           {activeTab === 'grammar' && (
             <GrammarWorkspace
               lang={lang}
@@ -272,6 +372,12 @@ export default function DashboardPage() {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         session={session}
+        activeTab={activeTab}
+        setActiveTab={(tab) => {
+          setActiveTab(tab);
+          setFilter('all');
+          setSearch('');
+        }}
         lang={lang}
         handleLang={handleLang}
         darkMode={darkMode}
@@ -279,7 +385,7 @@ export default function DashboardPage() {
         handleLogout={handleLogout}
         category={category}
         setCategory={setCategory}
-        categories={categories}
+        stats={stats}
         tr={tr}
       />
 

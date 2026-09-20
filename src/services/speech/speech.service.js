@@ -6,6 +6,15 @@ import { sanitizeSpeechText } from '../../lib/utils';
  * Indonesian (id-ID), and English (en-US) using the Web Speech API.
  */
 
+// Ensure native voices are pre-loaded into browser memory cache
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = () => {
+    window.speechSynthesis.getVoices();
+  };
+  // Trigger initial retrieval
+  window.speechSynthesis.getVoices();
+}
+
 /**
  * Selects the optimal native system voice for a given language code.
  * Prioritizes high-definition and natural-sounding voices (Siri, Google, Kyoko, Damayanti).

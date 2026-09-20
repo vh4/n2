@@ -4,6 +4,7 @@ import { vocab } from '../../../data/vocab';
 import { kanji } from '../../../data/kanji';
 import { cls } from '../../../lib/utils';
 import { EmptyState } from '../../../components/ui/EmptyState';
+import { MdSearch, MdStar, MdArrowForward } from 'react-icons/md';
 
 /**
  * FavoritesWorkspace Component.
@@ -114,9 +115,7 @@ export function FavoritesWorkspace({
       {/* Top Filter Bar: Search + Module Chips */}
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex flex-1 items-center rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm transition focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-400/20 dark:border-slate-800 dark:bg-slate-900 sm:max-w-xs">
-          <svg className="h-4 w-4 text-slate-400 dark:text-slate-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <circle cx={11} cy={11} r={8} /><path strokeLinecap="round" d="m21 21-4.35-4.35" />
-          </svg>
+          <MdSearch className="h-5 w-5 text-slate-400 dark:text-slate-500 mr-2 flex-shrink-0" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -137,7 +136,7 @@ export function FavoritesWorkspace({
               key={tab.id}
               onClick={() => setSubFilter(tab.id)}
               className={cls(
-                'rounded-lg px-3 py-1.5 text-xs font-semibold transition',
+                'rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer',
                 subFilter === tab.id
                   ? 'bg-amber-500 text-white shadow-sm'
                   : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
@@ -169,10 +168,10 @@ export function FavoritesWorkspace({
                   </span>
                   <button
                     onClick={() => removeFav(item.typeKey, item.index)}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/60 transition"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/60 transition cursor-pointer active:scale-95"
                     title="Remove from favorites"
                   >
-                    ★
+                    <MdStar className="h-4 w-4 fill-amber-400 text-amber-500" />
                   </button>
                 </div>
 
@@ -197,9 +196,10 @@ export function FavoritesWorkspace({
                 </span>
                 <button
                   onClick={() => setActiveTab(item.module)}
-                  className="text-xs font-bold text-blue-600 hover:underline dark:text-blue-400"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline dark:text-blue-400 cursor-pointer"
                 >
-                  Study →
+                  <span>Study</span>
+                  <MdArrowForward className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>

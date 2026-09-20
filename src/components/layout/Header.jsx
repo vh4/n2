@@ -1,13 +1,23 @@
+import React from 'react';
 import { cls } from '../../lib/utils';
+import {
+  MdLightMode,
+  MdDarkMode,
+  MdWidgets,
+  MdCheck,
+  MdRefresh,
+  MdStar,
+  MdLogout
+} from 'react-icons/md';
 
 /**
  * Header Component.
  * Top navigation bar providing:
  *  - App branding with Japanese Kanji badge.
  *  - Cloud sync status indicator badge.
- *  - Real-time study counters (Mastered, Need Review, Favorites).
+ *  - Real-time study counters (Mastered, Need Review, Favorites) with Material Design icons.
  *  - Language switcher (ID / EN) and Dark mode toggle.
- *  - User profile menu and logout action.
+ *  - User profile badge and logout action.
  *
  * @param {object} props
  * @param {object} props.session - Active user session.
@@ -77,28 +87,28 @@ export function Header({
 
           <div className="flex items-center gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800/80">
             <div className="flex items-center gap-1 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400" title="Mastered items">
-              <span>✓</span>
+              <MdCheck className="h-3.5 w-3.5" />
               <span>{stats.mastered}</span>
             </div>
             <div className="flex items-center gap-1 px-2 py-0.5 text-xs font-semibold text-rose-700 dark:text-rose-400" title="Need review items">
-              <span>↻</span>
+              <MdRefresh className="h-3.5 w-3.5" />
               <span>{stats.again}</span>
             </div>
             <div className="flex items-center gap-1 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400" title="Starred favorites">
-              <span>★</span>
+              <MdStar className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
               <span>{stats.fav}</span>
             </div>
           </div>
         </div>
 
-        {/* Action Controls: Lang Switcher, Theme Switcher, User Menu */}
+        {/* Action Controls: Lang Switcher, Theme Switcher, Mobile Menu, User Logout */}
         <div className="flex items-center gap-2">
           {/* Language Switcher */}
           <div className="flex items-center rounded-xl border border-slate-200 bg-white p-0.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <button
               onClick={() => handleLang('ID')}
               className={cls(
-                'rounded-lg px-2 py-1 text-xs font-bold transition',
+                'rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer',
                 lang === 'ID'
                   ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-sm'
                   : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
@@ -110,7 +120,7 @@ export function Header({
             <button
               onClick={() => handleLang('EN')}
               className={cls(
-                'rounded-lg px-2 py-1 text-xs font-bold transition',
+                'rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer',
                 lang === 'EN'
                   ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-sm'
                   : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
@@ -124,20 +134,20 @@ export function Header({
           {/* Theme Toggle Button */}
           <button
             onClick={handleDark}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
             title="Toggle theme (Dark / Light)"
             aria-label="Toggle theme"
           >
-            {darkMode ? '☀️' : '🌙'}
+            {darkMode ? <MdLightMode className="h-4 w-4 text-amber-500" /> : <MdDarkMode className="h-4 w-4 text-slate-700 dark:text-slate-300" />}
           </button>
 
           {/* Mobile Drawer Dial Toggle */}
           <button
             onClick={onOpenDrawer}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 sm:hidden"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 sm:hidden cursor-pointer"
             aria-label="Open menu drawer"
           >
-            ⚙️
+            <MdWidgets className="h-4 w-4" />
           </button>
 
           {/* Desktop User Badge & Logout Button */}
@@ -148,9 +158,10 @@ export function Header({
               </span>
               <button
                 onClick={handleLogout}
-                className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
+                className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-rose-950/40 dark:hover:text-rose-300 cursor-pointer"
               >
-                Logout
+                <MdLogout className="h-3 w-3" />
+                <span>Logout</span>
               </button>
             </div>
           )}

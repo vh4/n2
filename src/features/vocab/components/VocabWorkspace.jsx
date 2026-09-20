@@ -8,6 +8,7 @@ import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { FilterBar } from '../../../components/ui/FilterBar';
 import { Pagination } from '../../../components/ui/Pagination';
 import { EmptyState } from '../../../components/ui/EmptyState';
+import { MdVolumeUp, MdStar, MdStarBorder } from 'react-icons/md';
 
 /**
  * VocabWorkspace Component.
@@ -178,22 +179,26 @@ export function VocabWorkspace({
         <div className="flex items-center gap-2">
           <button
             onClick={speakJP}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 active:scale-95 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300 cursor-pointer shadow-sm"
             title="Pronounce Japanese"
           >
-            🔊
+            <MdVolumeUp className="h-4 w-4" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); toggleFav(); }}
             className={cls(
-              'flex h-8 w-8 items-center justify-center rounded-lg border transition',
+              'flex h-8 w-8 items-center justify-center rounded-xl border transition active:scale-95 cursor-pointer shadow-sm',
               st.fav
                 ? 'border-amber-300 bg-amber-50 text-amber-500 dark:border-amber-800 dark:bg-amber-950/50'
                 : 'border-slate-200 bg-white text-slate-400 hover:text-amber-500 dark:border-slate-800 dark:bg-slate-800'
             )}
             title="Star Favorite"
           >
-            ★
+            {st.fav ? (
+              <MdStar className="h-4 w-4 fill-amber-400 text-amber-400" />
+            ) : (
+              <MdStarBorder className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+            )}
           </button>
         </div>
       </div>
@@ -278,7 +283,7 @@ export function VocabWorkspace({
       {autoPlay && (
         <div className="flex items-center justify-between rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs font-extrabold text-amber-900 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-200 shadow-md animate-pulse">
           <div className="flex items-center gap-2 truncate">
-            <span>▶️</span>
+            <MdVolumeUp className="h-4 w-4 text-amber-600 animate-bounce flex-shrink-0" />
             <span className="truncate">{autoStatus || 'Auto Playing Page (Audio)...'}</span>
           </div>
           <button
@@ -362,7 +367,7 @@ export function VocabWorkspace({
                           {m}
                         </div>
                       </div>
-                      {s.fav && <span className="text-amber-400 text-sm">★</span>}
+                      {s.fav && <MdStar className="h-4 w-4 text-amber-500 fill-amber-400 flex-shrink-0" />}
                     </div>
 
                     <div className="mt-2.5 flex items-center justify-end">
