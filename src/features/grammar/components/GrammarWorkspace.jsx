@@ -65,6 +65,7 @@ export function GrammarWorkspace({
       const hay = c.join(' ').toLowerCase();
 
       if (search && !hay.includes(search.toLowerCase())) return false;
+      if (filter === 'unrated' && (s.status === 'again' || s.status === 'mastered')) return false;
       if (filter === 'again' && s.status !== 'again') return false;
       if (filter === 'mastered' && s.status !== 'mastered') return false;
       if (filter === 'favorite' && !s.fav) return false;

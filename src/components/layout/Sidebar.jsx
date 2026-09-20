@@ -150,9 +150,19 @@ export function Sidebar({
               style={{ width: `${percentMastered}%` }}
             />
           </div>
-          <div className="mt-2.5 flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
-            <span>{stats.mastered} {tr('known_label')}</span>
-            <span>{stats.again} {tr('review_label')}</span>
+          <div className="mt-2.5 grid grid-cols-3 gap-1 text-center text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+            <div className="rounded-lg bg-white/70 py-1 dark:bg-slate-900/50">
+              <span className="block text-slate-700 dark:text-slate-200 font-bold">{stats.unrated ?? (stats.total - stats.mastered - stats.again)}</span>
+              <span className="text-[9px] truncate block">{tr('filter_unrated')}</span>
+            </div>
+            <div className="rounded-lg bg-rose-50/80 py-1 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400">
+              <span className="block font-bold">{stats.again}</span>
+              <span className="text-[9px] truncate block">{tr('review_label')}</span>
+            </div>
+            <div className="rounded-lg bg-emerald-50/80 py-1 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+              <span className="block font-bold">{stats.mastered}</span>
+              <span className="text-[9px] truncate block">{tr('known_label')}</span>
+            </div>
           </div>
         </div>
       </div>

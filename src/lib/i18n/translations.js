@@ -45,6 +45,7 @@ export const translations = {
 
   // Filter Bar Buttons
   filter_all:      { EN: 'All',              ID: 'Semua' },
+  filter_unrated:  { EN: 'Unrated',          ID: 'Belum Dinilai' },
   filter_again:    { EN: 'Not Yet',         ID: 'Belum Ingat' },
   filter_mastered: { EN: 'Mastered',       ID: 'Dikuasai' },
   filter_fav:      { EN: '★ Favorites',     ID: '★ Favorit' },

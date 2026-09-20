@@ -6,11 +6,11 @@ import { MdSearch, MdClose, MdStar } from 'react-icons/md';
  * FilterBar Component.
  * Search bar and filter chip selector:
  *  - Real-time search input with clear button and MdSearch icon.
- *  - Filter chips: 'all' (Semua), 'again' (Belum Ingat), 'mastered' (Dikuasai), 'favorite' (★ Favorit).
+ *  - Filter chips: 'all' (Semua), 'unrated' (Belum Dinilai), 'again' (Belum Ingat), 'mastered' (Dikuasai), 'favorite' (★ Favorit).
  *  - Dynamic total matched items counter badge.
  *
  * @param {object} props
- * @param {'all'|'again'|'mastered'|'favorite'} props.filter - Current active filter.
+ * @param {'all'|'unrated'|'again'|'mastered'|'favorite'} props.filter - Current active filter.
  * @param {(filter: string) => void} props.onFilter - Callback when user clicks a filter chip.
  * @param {string} props.search - Current search input query.
  * @param {(query: string) => void} props.onSearch - Callback when search input changes.
@@ -30,7 +30,7 @@ export function FilterBar({
   countLabel,
   tr
 }) {
-  const filterKeys = ['all', 'again', 'mastered', 'favorite'];
+  const filterKeys = ['all', 'unrated', 'again', 'mastered', 'favorite'];
 
   return (
     <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">

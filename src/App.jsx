@@ -288,7 +288,7 @@ function FilterBar({ filter, onFilter, search, onSearch, placeholder, total, cou
         )}
       </div>
       <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 hide-scroll">
-        {['all', 'again', 'mastered', 'favorite'].map(f => (
+        {['all', 'unrated', 'again', 'mastered', 'favorite'].map(f => (
           <button key={f} onClick={() => onFilter(f)}
             className={cls('flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition',
               filter === f
@@ -722,6 +722,7 @@ function GrammarWorkspace({ lang, tr, filter, onFilter, search, onSearch, state,
     const c = cards[i]; const s = state[`g_${i}`] || {};
     const hay = c.join(' ').toLowerCase();
     if (search && !hay.includes(search.toLowerCase())) return false;
+    if (filter === 'unrated' && (s.status === 'again' || s.status === 'mastered')) return false;
     if (filter === 'again' && s.status !== 'again') return false;
     if (filter === 'mastered' && s.status !== 'mastered') return false;
     if (filter === 'favorite' && !s.fav) return false;
@@ -941,6 +942,7 @@ function CardWorkspace({ lang, tr, filter, onFilter, search, onSearch, state, se
       ? (item.glyph + ' ' + item.meaning_en + ' ' + item.meaning_id + ' ' + item.on + ' ' + item.kun).toLowerCase()
       : (item[0] + ' ' + item[1] + ' ' + (item[2] || '') + ' ' + (item[3] || '')).toLowerCase();
     if (search && !hay.includes(search.toLowerCase())) return false;
+    if (filter === 'unrated' && (s.status === 'again' || s.status === 'mastered')) return false;
     if (filter === 'again' && s.status !== 'again') return false;
     if (filter === 'mastered' && s.status !== 'mastered') return false;
     if (filter === 'favorite' && !s.fav) return false;

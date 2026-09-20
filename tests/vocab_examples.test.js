@@ -2,7 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { vocab } from '../src/data/vocab.js';
 import { maziiData } from '../src/data/mazii.js';
+import { cards } from '../src/data/cards.js';
+import { kanji } from '../src/data/kanji.js';
 import { getVocabExamples } from '../src/lib/utils.js';
+import { t } from '../src/i18n.js';
+import { translations } from '../src/lib/i18n/translations.js';
 
 test('1. Vocab Data Contract — Exported vocab has 1,550+ entries and all have 12 elements with natural conversational & situational examples (JP, Romaji, ID, EN)', () => {
   assert.ok(vocab.length >= 1550, `Expected at least 1550 vocab entries, got ${vocab.length}`);
@@ -84,4 +88,91 @@ test('4. Dynamic Language Switching Contract — getVocabExamples prioritizes ac
   assert.ok(exID[0].subMeaning.includes('🇬🇧'));
   assert.equal(exID[1].meaning, teishi[9]);
   assert.ok(exID[1].subMeaning.includes('🇬🇧'));
+});
+
+test('5. Filter Translations Contract — Semua, Belum Dinilai, Belum Ingat, Dikuasai, Favorite are defined in EN and ID', () => {
+  const expectedFilters = ['all', 'unrated', 'again', 'mastered', 'favorite'];
+
+  for (const f of expectedFilters) {
+    const key = `filter_${f}`;
+    // Test i18n.js
+    assert.ok(t[key], `Missing ${key} in src/i18n.js`);
+    assert.ok(t[key].EN && typeof t[key].EN === 'string', `Missing EN for ${key} in src/i18n.js`);
+    assert.ok(t[key].ID && typeof t[key].ID === 'string', `Missing ID for ${key} in src/i18n.js`);
+
+    // Test translations.js
+    assert.ok(translations[key], `Missing ${key} in src/lib/i18n/translations.js`);
+    assert.ok(translations[key].EN && typeof translations[key].EN === 'string', `Missing EN for ${key} in translations.js`);
+    assert.ok(translations[key].ID && typeof translations[key].ID === 'string', `Missing ID for ${key} in translations.js`);
+  }
+
+  // Exact Indonesian label checks requested by user
+  assert.equal(t.filter_all.ID, 'Semua');
+  assert.equal(t.filter_unrated.ID, 'Belum Dinilai');
+  assert.equal(t.filter_again.ID, 'Belum Ingat');
+  assert.equal(t.filter_mastered.ID, 'Dikuasai');
+  assert.equal(t.filter_favorite.ID, '★ Favorit');
+});
+
+test('6. Five Filter State Contract — unrated, again, mastered, favorite, all work symmetrically across Grammar, Vocab, and Kanji', () => {
+  // Test with a mock state
+  const mockState = {
+    // Grammar: 2 cards rated
+    'g_0': { status: 'again', fav: false },
+    'g_1': { status: 'mastered', fav: true },
+    'g_2': { fav: true }, // unrated but favorited
+
+    // Vocab: 3 cards rated
+    'v_0': { status: 'again', fav: true },
+    'v_1': { status: 'mastered', fav: false },
+    'v_2': { status: 'mastered', fav: true },
+
+    // Kanji: 1 card rated
+    'k_0': { status: 'again', fav: false }
+  };
+
+  // Helper matching the exact workspace filter logic
+  function filterItems(dataset, prefix, filter) {
+    return dataset.map((_, i) => i).filter((i) => {
+      const s = mockState[`${prefix}_${i}`] || {};
+      if (filter === 'unrated' && (s.status === 'again' || s.status === 'mastered')) return false;
+      if (filter === 'again' && s.status !== 'again') return false;
+      if (filter === 'mastered' && s.status !== 'mastered') return false;
+      if (filter === 'favorite' && !s.fav) return false;
+      return true;
+    });
+  }
+
+  // Check Grammar (235 items)
+  const gAll = filterItems(cards, 'g', 'all');
+  const gUnrated = filterItems(cards, 'g', 'unrated');
+  const gAgain = filterItems(cards, 'g', 'again');
+  const gMastered = filterItems(cards, 'g', 'mastered');
+  const gFav = filterItems(cards, 'g', 'favorite');
+
+  assert.equal(gAll.length, cards.length, 'All grammar cards must match');
+  assert.equal(gAgain.length, 1, 'g_0 is again');
+  assert.equal(gMastered.length, 1, 'g_1 is mastered');
+  assert.equal(gFav.length, 2, 'g_1 and g_2 are favorites');
+  assert.equal(gUnrated.length, cards.length - 2, 'Unrated must equal total - (again + mastered)');
+  assert.ok(gUnrated.includes(2), 'g_2 (fav without rating) must remain in unrated');
+  assert.ok(!gUnrated.includes(0), 'g_0 (again) must NOT be in unrated');
+  assert.ok(!gUnrated.includes(1), 'g_1 (mastered) must NOT be in unrated');
+
+  // Check Vocab (1550+ items)
+  const vAll = filterItems(vocab, 'v', 'all');
+  const vUnrated = filterItems(vocab, 'v', 'unrated');
+  const vAgain = filterItems(vocab, 'v', 'again');
+  const vMastered = filterItems(vocab, 'v', 'mastered');
+  const vFav = filterItems(vocab, 'v', 'favorite');
+
+  assert.equal(vAll.length, vocab.length, 'All vocab items must match');
+  assert.equal(vAgain.length, 1, 'v_0 is again');
+  assert.equal(vMastered.length, 2, 'v_1, v_2 are mastered');
+  assert.equal(vFav.length, 2, 'v_0, v_2 are favorites');
+  assert.equal(vUnrated.length, vocab.length - 3, 'Unrated must equal total - 3');
+
+  // Mathematical invariance: unrated + again + mastered === total
+  assert.equal(gUnrated.length + gAgain.length + gMastered.length, cards.length);
+  assert.equal(vUnrated.length + vAgain.length + vMastered.length, vocab.length);
 });

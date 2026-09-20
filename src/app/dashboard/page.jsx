@@ -162,7 +162,8 @@ export default function DashboardPage() {
     });
 
     const total = cards.length + vocab.length + kanji.length;
-    return { mastered, again, fav, total };
+    const unrated = Math.max(0, total - mastered - again);
+    return { mastered, again, fav, total, unrated };
   }, [state]);
 
   /**

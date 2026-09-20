@@ -39,10 +39,12 @@ export const t = {
   btn_flip:          { EN: 'Tap to flip',      ID: 'Ketuk untuk membalik' },
 
   // Filter buttons
-  filter_all:    { EN: 'All',              ID: 'Semua' },
-  filter_again:  { EN: 'Not Yet',         ID: 'Belum Ingat' },
-  filter_mastered:{ EN: 'Mastered',       ID: 'Dikuasai' },
-  filter_fav:    { EN: '★ Favorites',     ID: '★ Favorit' },
+  filter_all:      { EN: 'All',              ID: 'Semua' },
+  filter_unrated:  { EN: 'Unrated',          ID: 'Belum Dinilai' },
+  filter_again:    { EN: 'Not Yet',         ID: 'Belum Ingat' },
+  filter_mastered: { EN: 'Mastered',       ID: 'Dikuasai' },
+  filter_fav:      { EN: '★ Favorites',     ID: '★ Favorit' },
+  filter_favorite: { EN: '★ Favorites',    ID: '★ Favorit' },
 
   // Search placeholders
   search_grammar:{ EN: 'Search grammar, meaning, example…', ID: 'Cari grammar, arti, contoh…' },
