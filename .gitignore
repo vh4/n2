@@ -38,3 +38,7 @@ yarn-error.log*
 .vercel/
 .vercel
 .env*
+
+# Scratch & Data generation chunks
+scripts/chunks/
+scripts/all_words.json

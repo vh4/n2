@@ -362,3 +362,59 @@ test('8. Flashcard Front Practice Contract — Front of cards displays ONLY prom
   assert.ok(grammarSrc.includes('{card[3]}'), 'Grammar back must retain example');
 });
 
+test('9. Natural Vocabulary Sentences Quality Contract — maziiData and vocab are free of repetitive templates and have authentic JLPT N2 examples', () => {
+  const genericFrames = [
+    /についての件を確認していただけますか/,
+    /こちらの.*?について教えていただけますか/,
+    /今回の.*?について、どう思われますか/,
+    /最近、新しい.*?を試してみたんだ/,
+    /週末に.*?のイベントがあるんだけど/,
+    /の準備は順調に進んでいますか/,
+    /こちらの.*?を利用すると便利ですよ/,
+    /この近くに.*?を取り扱っている場所はありますか/,
+    /社会の急速な変化に伴い/,
+    /将来の目標を達成する上で/,
+    /専門家の綿密な調査によって/,
+    /安心で快適な生活を維持するために/,
+    /利用者の安全を最優先に考え/,
+    /プロジェクトの成功に向けて/
+  ];
+
+  // Verify across all mazii items
+  for (let i = 0; i < maziiData.length; i++) {
+    const item = maziiData[i];
+    const ex1_jp = item[4];
+    const ex2_jp = item[7];
+
+    for (const frame of genericFrames) {
+      assert.ok(!frame.test(ex1_jp), `Mazii item ${i} (${item[0]}) ex1 contains generic template: ${ex1_jp}`);
+      assert.ok(!frame.test(ex2_jp), `Mazii item ${i} (${item[0]}) ex2 contains generic template: ${ex2_jp}`);
+    }
+  }
+
+  // Verify across all vocab items
+  for (let i = 0; i < vocab.length; i++) {
+    const item = vocab[i];
+    const ex1_jp = item[4];
+    const ex2_jp = item[7];
+
+    for (const frame of genericFrames) {
+      assert.ok(!frame.test(ex1_jp), `Vocab item ${i} (${item[0]}) ex1 contains generic template: ${ex1_jp}`);
+      assert.ok(!frame.test(ex2_jp), `Vocab item ${i} (${item[0]}) ex2 contains generic template: ${ex2_jp}`);
+    }
+  }
+
+  // Spot-check key representative words that previously suffered from generic templates
+  const checkWords = ['中身', 'テンポ', '体制', '調整', '指定'];
+  for (const w of checkWords) {
+    const found = vocab.find(v => v[0] === w);
+    assert.ok(found, `Word ${w} must be present in vocab`);
+    assert.ok(found[4].includes('「') && found[4].includes('」'), `${w} ex1 must be conversational quote dialogue`);
+    assert.ok(found[5].length > 0 && !found[5].includes('undefined'), `${w} ex1 romaji must be valid`);
+    assert.ok(found[6].length > 0 && !found[6].includes('undefined'), `${w} ex1 ID must be valid`);
+    assert.ok(found[7].length > 0 && !found[7].includes('undefined'), `${w} ex2 JP must be valid`);
+    assert.ok(found[10].length > 0 && !found[10].includes('undefined'), `${w} ex1 EN must be valid`);
+    assert.ok(found[11].length > 0 && !found[11].includes('undefined'), `${w} ex2 EN must be valid`);
+  }
+});
+
