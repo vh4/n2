@@ -857,9 +857,12 @@ function GrammarWorkspace({ lang, tr, filter, onFilter, search, onSearch, state,
         <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">{card[6]}</span>
         <CardActions onSpeak={speakJP} isFav={st.fav} onToggleFav={toggleFav} />
       </div>
-      <div className="flex flex-1 flex-col items-center justify-center py-4 text-center">
-        <div className="font-jp text-4xl font-black text-slate-900 dark:text-white sm:text-5xl">{card[0]}</div>
-        <div className="mt-3 max-w-xs text-sm font-medium text-slate-500 dark:text-slate-400">{meaning}</div>
+      <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
+        <div className="font-jp text-4xl font-black text-slate-900 dark:text-white sm:text-5xl select-none">{card[0]}</div>
+        <div className="mt-4 flex items-center gap-1.5 rounded-full bg-slate-100/80 px-3 py-1 text-[11px] font-medium text-slate-400 dark:bg-slate-800/80 dark:text-slate-500">
+          <span>👆</span>
+          <span>{tr('btn_flip')}</span>
+        </div>
       </div>
       <div className="flex items-center justify-between">
         <StatusBadge status={st.status} tr={tr} />
@@ -1116,10 +1119,12 @@ function CardWorkspace({ lang, tr, filter, onFilter, search, onSearch, state, se
         </span>
         <CardActions onSpeak={speakJP} isFav={st.fav} onToggleFav={toggleFav} />
       </div>
-      <div className="flex flex-1 flex-col items-center justify-center py-4 text-center">
-        <div className={cls('font-jp font-black text-slate-900 dark:text-white', type === 'kanji' ? 'text-7xl sm:text-8xl' : 'text-5xl sm:text-6xl')}>{getWord()}</div>
-        <div className="font-jp mt-2 text-base font-semibold text-amber-600 dark:text-amber-400">{getRead()}</div>
-        {type !== 'kanji' && <div className="mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">{getMeaning()}</div>}
+      <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
+        <div className={cls('font-jp font-black text-slate-900 dark:text-white select-none', type === 'kanji' ? 'text-7xl sm:text-8xl' : 'text-5xl sm:text-6xl')}>{getWord()}</div>
+        <div className="mt-4 flex items-center gap-1.5 rounded-full bg-slate-100/80 px-3 py-1 text-[11px] font-medium text-slate-400 dark:bg-slate-800/80 dark:text-slate-500">
+          <span>👆</span>
+          <span>{tr('btn_flip')}</span>
+        </div>
       </div>
       <div className="flex items-center justify-between">
         <StatusBadge status={st.status} tr={tr} />

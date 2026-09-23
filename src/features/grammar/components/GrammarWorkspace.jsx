@@ -230,12 +230,13 @@ export function GrammarWorkspace({
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center py-4 text-center">
-        <div className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white">
+      <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
+        <div className="font-jp text-3xl sm:text-5xl font-black text-slate-900 dark:text-white select-none">
           {card[0]}
         </div>
-        <div className="mt-3 max-w-xs text-sm font-medium text-slate-500 dark:text-slate-400">
-          {meaning}
+        <div className="mt-4 flex items-center gap-1.5 rounded-full bg-slate-100/80 px-3 py-1 text-[11px] font-medium text-slate-400 dark:bg-slate-800/80 dark:text-slate-500">
+          <span>👆</span>
+          <span>{tr('btn_flip')}</span>
         </div>
       </div>
 

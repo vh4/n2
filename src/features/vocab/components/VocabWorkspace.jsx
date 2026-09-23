@@ -230,15 +230,13 @@ export function VocabWorkspace({
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center py-4 text-center">
-        <div className="text-4xl sm:text-6xl font-black text-slate-900 dark:text-white">
+      <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
+        <div className="font-jp text-4xl sm:text-6xl font-black tracking-wide text-slate-900 dark:text-white select-none">
           {getWord()}
         </div>
-        <div className="mt-2 text-base font-semibold text-amber-600 dark:text-amber-400">
-          {getRead()}
-        </div>
-        <div className="mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-          {getMeaning()}
+        <div className="mt-4 flex items-center gap-1.5 rounded-full bg-slate-100/80 px-3 py-1 text-[11px] font-medium text-slate-400 dark:bg-slate-800/80 dark:text-slate-500">
+          <span>👆</span>
+          <span>{tr('btn_flip')}</span>
         </div>
       </div>
 

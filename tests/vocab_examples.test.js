@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { vocab } from '../src/data/vocab.js';
 import { maziiData } from '../src/data/mazii.js';
 import { cards } from '../src/data/cards.js';
@@ -312,5 +313,52 @@ test('7. Sequential Advance Regression — Rating in unrated, again, and mastere
   lastDeck.setFilter('all');
   assert.equal(lastDeck.pos, 0, 'Switching filter resets position to 0');
   assert.equal(lastDeck.currentCard, 'CardAlpha', 'CardAlpha is first card in all filter');
+});
+
+test('8. Flashcard Front Practice Contract — Front of cards displays ONLY prompt without meaning, and Vocab/Kanji omit hiragana/readings for pure recall practice', () => {
+  const vocabSrc = fs.readFileSync(new URL('../src/features/vocab/components/VocabWorkspace.jsx', import.meta.url), 'utf8');
+  const kanjiSrc = fs.readFileSync(new URL('../src/features/kanji/components/KanjiWorkspace.jsx', import.meta.url), 'utf8');
+  const grammarSrc = fs.readFileSync(new URL('../src/features/grammar/components/GrammarWorkspace.jsx', import.meta.url), 'utf8');
+  const appSrc = fs.readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
+
+  // Extract frontContent blocks from feature workspaces
+  const extractFrontContent = (src) => {
+    const match = src.match(/const frontContent = \([\s\S]*?\n  \);/);
+    return match ? match[0] : '';
+  };
+
+  const vocabFront = extractFrontContent(vocabSrc);
+  const kanjiFront = extractFrontContent(kanjiSrc);
+  const grammarFront = extractFrontContent(grammarSrc);
+
+  // 1. Vocab Front: Must NOT have reading {getRead()} or meaning {getMeaning()}
+  assert.ok(vocabFront, 'VocabWorkspace must define frontContent');
+  assert.ok(!vocabFront.includes('{getMeaning()}'), 'Vocab front must NOT display meaning (for practice mode)');
+  assert.ok(!vocabFront.includes('{getRead()}'), 'Vocab front must NOT display hiragana reading (for practice mode)');
+  assert.ok(vocabFront.includes('{getWord()}'), 'Vocab front must display the Japanese word prompt');
+  assert.ok(vocabFront.includes("tr('btn_flip')"), 'Vocab front must include tap-to-flip affordance');
+
+  // 2. Kanji Front: Must NOT have reading {getRead()} or meaning {getMeaning()}
+  assert.ok(kanjiFront, 'KanjiWorkspace must define frontContent');
+  assert.ok(!kanjiFront.includes('{getMeaning()}'), 'Kanji front must NOT display meaning');
+  assert.ok(!kanjiFront.includes('{getRead()}'), 'Kanji front must NOT display hiragana readings (onyomi/kunyomi)');
+  assert.ok(kanjiFront.includes('{getWord()}'), 'Kanji front must display the Kanji glyph prompt');
+  assert.ok(kanjiFront.includes("tr('btn_flip')"), 'Kanji front must include tap-to-flip affordance');
+
+  // 3. Grammar Front: Must NOT have meaning
+  assert.ok(grammarFront, 'GrammarWorkspace must define frontContent');
+  assert.ok(!grammarFront.includes('{meaning}'), 'Grammar front must NOT display meaning');
+  assert.ok(grammarFront.includes('{card[0]}'), 'Grammar front must display the grammar pattern');
+  assert.ok(grammarFront.includes("tr('btn_flip')"), 'Grammar front must include tap-to-flip affordance');
+
+  // 4. Back side verification: Back side must retain full details (reading, meaning, examples)
+  assert.ok(vocabSrc.includes('{getRead()}'), 'Vocab back must retain getRead()');
+  assert.ok(vocabSrc.includes('{getMeaning()}'), 'Vocab back must retain getMeaning()');
+  assert.ok(kanjiSrc.includes('{item.on}'), 'Kanji back must retain onyomi');
+  assert.ok(kanjiSrc.includes('{item.kun}'), 'Kanji back must retain kunyomi');
+  assert.ok(kanjiSrc.includes('{getMeaning()}'), 'Kanji back must retain getMeaning()');
+  assert.ok(grammarSrc.includes('{meaning}'), 'Grammar back must retain meaning');
+  assert.ok(grammarSrc.includes('{card[2]}'), 'Grammar back must retain formula');
+  assert.ok(grammarSrc.includes('{card[3]}'), 'Grammar back must retain example');
 });
 
