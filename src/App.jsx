@@ -730,7 +730,7 @@ function GrammarWorkspace({ lang, tr, filter, onFilter, search, onSearch, state,
     return true;
   }), [search, filter, state, category]);
 
-  useEffect(() => { setPage(1); }, [filtered.length, filter, search, category]);
+  useEffect(() => { setPos(0); setPage(1); }, [filter, search, category]);
 
   const safePos = Math.min(pos, Math.max(0, filtered.length - 1));
   const idx = filtered[safePos] ?? 0;
@@ -747,25 +747,28 @@ function GrammarWorkspace({ lang, tr, filter, onFilter, search, onSearch, state,
       (filter === 'again' && status !== 'again') ||
       (filter === 'mastered' && status !== 'mastered');
 
+    setFlipped(false);
     setItemState('g', idx, { status });
     showToast(status === 'mastered' ? tr('toast_mastered') : tr('toast_again'));
-    setFlipped(false);
 
-    setTimeout(() => {
-      setPos((p) => {
-        if (willLeave) {
-          return Math.max(0, Math.min(filtered.length - 2, p));
-        }
-        return Math.min(filtered.length - 1, p + 1);
-      });
-    }, 180);
+    if (willLeave) {
+      if (safePos >= filtered.length - 1) {
+        setPos(Math.max(0, filtered.length - 2));
+      }
+    } else {
+      setTimeout(() => {
+        setPos((p) => Math.min(filtered.length - 1, p + 1));
+      }, 180);
+    }
   };
   const toggleFav = () => {
     const n = !st.fav;
     setItemState('g', idx, { fav: n });
     showToast(n ? tr('toast_fav_add') : tr('toast_fav_rem'));
     if (filter === 'favorite' && !n) {
-      setPos((p) => Math.max(0, Math.min(filtered.length - 2, p)));
+      if (safePos >= filtered.length - 1) {
+        setPos(Math.max(0, filtered.length - 2));
+      }
     }
   };
   useEffect(() => { setFlipped(false); }, [safePos]);
@@ -974,7 +977,7 @@ function CardWorkspace({ lang, tr, filter, onFilter, search, onSearch, state, se
     return true;
   }), [search, filter, state]);
 
-  useEffect(() => { setPage(1); }, [filtered.length, filter, search]);
+  useEffect(() => { setPos(0); setPage(1); }, [filter, search]);
 
   const safePos = Math.min(pos, Math.max(0, filtered.length - 1));
   const idx = filtered[safePos] ?? 0;
@@ -998,25 +1001,28 @@ function CardWorkspace({ lang, tr, filter, onFilter, search, onSearch, state, se
       (filter === 'again' && status !== 'again') ||
       (filter === 'mastered' && status !== 'mastered');
 
+    setFlipped(false);
     setItemState(typeKey, idx, { status });
     showToast(status === 'mastered' ? tr('toast_mastered') : tr('toast_again'));
-    setFlipped(false);
 
-    setTimeout(() => {
-      setPos((p) => {
-        if (willLeave) {
-          return Math.max(0, Math.min(filtered.length - 2, p));
-        }
-        return Math.min(filtered.length - 1, p + 1);
-      });
-    }, 180);
+    if (willLeave) {
+      if (safePos >= filtered.length - 1) {
+        setPos(Math.max(0, filtered.length - 2));
+      }
+    } else {
+      setTimeout(() => {
+        setPos((p) => Math.min(filtered.length - 1, p + 1));
+      }, 180);
+    }
   };
   const toggleFav = () => {
     const n = !st.fav;
     setItemState(typeKey, idx, { fav: n });
     showToast(n ? tr('toast_fav_add') : tr('toast_fav_rem'));
     if (filter === 'favorite' && !n) {
-      setPos((p) => Math.max(0, Math.min(filtered.length - 2, p)));
+      if (safePos >= filtered.length - 1) {
+        setPos(Math.max(0, filtered.length - 2));
+      }
     }
   };
   useEffect(() => { setFlipped(false); }, [safePos]);

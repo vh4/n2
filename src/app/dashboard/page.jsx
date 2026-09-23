@@ -84,19 +84,25 @@ export default function DashboardPage() {
   const search = tabSearch[activeTab] || '';
 
   /**
-   * Updates the filter for the currently active tab only.
+   * Updates the filter for the currently active tab only and resets deck position to 0.
    * @param {string} newFilter - New filter value.
    */
   const setFilter = (newFilter) => {
     setTabFilters((prev) => ({ ...prev, [activeTab]: newFilter }));
+    if (activeTab === 'grammar') setGPos(0);
+    else if (activeTab === 'vocab') setVPos(0);
+    else if (activeTab === 'kanji') setKPos(0);
   };
 
   /**
-   * Updates the search query for the currently active tab only.
+   * Updates the search query for the currently active tab only and resets deck position to 0.
    * @param {string} query - New search query.
    */
   const setSearch = (query) => {
     setTabSearch((prev) => ({ ...prev, [activeTab]: query }));
+    if (activeTab === 'grammar') setGPos(0);
+    else if (activeTab === 'vocab') setVPos(0);
+    else if (activeTab === 'kanji') setKPos(0);
   };
 
   const [category, setCategory] = useState('ALL');

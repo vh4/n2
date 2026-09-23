@@ -74,10 +74,11 @@ export function GrammarWorkspace({
     });
   }, [search, filter, state, category]);
 
-  // Reset to page 1 whenever filters change
+  // Reset active position to card 0 and page to 1 whenever filters change
   useEffect(() => {
+    setPos(0);
     setPage(1);
-  }, [filtered.length, filter, search, category]);
+  }, [filter, search, category]);
 
   const safePos = Math.min(pos, Math.max(0, filtered.length - 1));
   const idx = filtered[safePos] ?? 0;
@@ -93,18 +94,22 @@ export function GrammarWorkspace({
       (filter === 'again' && status !== 'again') ||
       (filter === 'mastered' && status !== 'mastered');
 
+    setFlipped(false);
     setItemState('g', idx, { status });
     showToast(status === 'mastered' ? tr('toast_mastered') : tr('toast_again'));
-    setFlipped(false);
 
-    setTimeout(() => {
-      setPos((p) => {
-        if (willLeave) {
-          return Math.max(0, Math.min(filtered.length - 2, p));
-        }
-        return Math.min(filtered.length - 1, p + 1);
-      });
-    }, 180);
+    if (willLeave) {
+      // The card leaves the filtered list. Next card shifts naturally into safePos.
+      // If safePos was at or beyond the last card, clamp pos to the new last card.
+      if (safePos >= filtered.length - 1) {
+        setPos(Math.max(0, filtered.length - 2));
+      }
+    } else {
+      // The card remains in the filtered list. Advance forward.
+      setTimeout(() => {
+        setPos((p) => Math.min(filtered.length - 1, p + 1));
+      }, 180);
+    }
   };
 
   const toggleFav = () => {
@@ -112,7 +117,9 @@ export function GrammarWorkspace({
     setItemState('g', idx, { fav: nextFav });
     showToast(nextFav ? tr('toast_fav_add') : tr('toast_fav_rem'));
     if (filter === 'favorite' && !nextFav) {
-      setPos((p) => Math.max(0, Math.min(filtered.length - 2, p)));
+      if (safePos >= filtered.length - 1) {
+        setPos(Math.max(0, filtered.length - 2));
+      }
     }
   };
 

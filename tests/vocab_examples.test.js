@@ -204,6 +204,19 @@ test('7. Sequential Advance Regression — Rating in unrated, again, and mastere
       return list[safePos] || null;
     }
 
+    setFilter(newFilter) {
+      this.filter = newFilter;
+      this.pos = 0; // Filter change always resets active card to 0
+    }
+
+    next() {
+      this.pos = Math.min(this.filtered.length - 1, this.pos + 1);
+    }
+
+    prev() {
+      this.pos = Math.max(0, this.pos - 1);
+    }
+
     rate(status) {
       const listBefore = this.filtered;
       const willLeave =
@@ -219,7 +232,9 @@ test('7. Sequential Advance Regression — Rating in unrated, again, and mastere
 
       // Transition position
       if (willLeave) {
-        this.pos = Math.max(0, Math.min(listBefore.length - 2, this.pos));
+        if (this.pos >= listBefore.length - 1) {
+          this.pos = Math.max(0, listBefore.length - 2);
+        }
       } else {
         this.pos = Math.min(listBefore.length - 1, this.pos + 1);
       }
@@ -276,5 +291,26 @@ test('7. Sequential Advance Regression — Rating in unrated, again, and mastere
   // Rate CardY as 'mastered' (stays in 'mastered') -> advances to CardZ
   masteredDeck.rate('mastered');
   assert.equal(masteredDeck.currentCard, 'CardZ', 'Rating mastered on CardY advances to CardZ');
+
+  // Scenario 4: User navigates using next arrow first, then rates
+  const navDeck = new FlashcardDeckSimulator(['Card1', 'Card2', 'Card3', 'Card4'], 'unrated');
+  navDeck.next(); // move to Card2
+  assert.equal(navDeck.currentCard, 'Card2');
+  navDeck.rate('mastered'); // Card2 leaves, Card3 shifts into slot 1
+  assert.equal(navDeck.currentCard, 'Card3', 'Card3 shifts into place without skipping Card4');
+
+  // Scenario 5: User rates the last card in the filtered list
+  const lastDeck = new FlashcardDeckSimulator(['CardAlpha', 'CardBeta'], 'unrated');
+  lastDeck.next(); // move to CardBeta (last card)
+  assert.equal(lastDeck.currentCard, 'CardBeta');
+  lastDeck.rate('again'); // CardBeta leaves, position clamps to CardAlpha
+  assert.equal(lastDeck.currentCard, 'CardAlpha', 'Position clamps to remaining card');
+
+  // Scenario 6: Filter change resets deck position to 0
+  lastDeck.next();
+  assert.equal(lastDeck.pos, 0); // only 1 card left, so pos is 0
+  lastDeck.setFilter('all');
+  assert.equal(lastDeck.pos, 0, 'Switching filter resets position to 0');
+  assert.equal(lastDeck.currentCard, 'CardAlpha', 'CardAlpha is first card in all filter');
 });
 
